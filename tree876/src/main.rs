@@ -46,10 +46,6 @@ fn main() {
 }
 
 
-
-
-
-
 #[derive(Default)]
 pub struct SkyBox {
     pub view_range: f32,
@@ -57,13 +53,20 @@ pub struct SkyBox {
 }
 
 /// Skybox startup system
-pub fn startup(mut assets: Mut<Assets>, renderer: Const<Renderer>) {
+pub fn startup(
+    mut assets: Mut<Assets>,
+    mut world: Mut<World>,
+    renderer: Const<Renderer>,
+) {
 
     // generate mesh
     let mut mesh = Mesh::default();
     mesh.with_vertices(&[
         // front
-        [-1.0, -0.0, 1.0], [1.0, -0.0, 1.0], [1.0, 0.0, 1.0],
+        // WRONG:
+        // [-1.0, -0.0, 1.0], [1.0, -0.0, 1.0], [1.0, 0.0, 1.0],
+        // Correct:
+        [-1.0, -1.0, 0.0], [1.0, 0.0, 0.0], [1.0, 1.0, 0.0],
     ]);
     mesh.with_indices(&[
         0, 1, 2,
@@ -83,6 +86,13 @@ pub fn startup(mut assets: Mut<Assets>, renderer: Const<Renderer>) {
     shader.load(&renderer);
 
     assets.store_as(shader, PIPELINE_LABEL);
+
+    world.spawn(Some(
+        (
+            SkyBox::default(),
+            Pipeline::default(),
+        )
+    ));
 }
 
 /// SkyBox rendering system
@@ -132,7 +142,7 @@ pub fn render(
 
                     ],
                     options: PipelineOptions {
-                        depth_buffer_mode: DepthBufferMode::Read,
+                        depth_buffer_mode: DepthBufferMode::Disabled,
                         ..Default::default()
                     }
                 });
